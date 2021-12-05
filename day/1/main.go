@@ -78,7 +78,7 @@ func main() {
 	println("Total increases (window size of 1)")
 	println(total)
 
-	println("Total increases (window size of 3")
+	println("Total increases (window size of 3)")
 	total = totalIncreasesInWindow(metrics, 3)
 	println(total)
 }
