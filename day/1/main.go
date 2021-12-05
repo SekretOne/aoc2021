@@ -7,10 +7,9 @@ import (
 	"os"
 )
 
-func main() {
-	var metrics = make([]int, 0, 16)
-
-	file, err := os.Open("day/1/input.txt")
+// readInput takes a file's name and reads a series of integers, one per line.
+func readInput(fileName string) []int {
+	file, err := os.Open(fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -20,6 +19,7 @@ func main() {
 		}
 	}()
 
+	metrics := make([]int, 0, 16)
 	var line int
 	for {
 		_, err := fmt.Fscanln(file, &line) // scan a line
@@ -33,11 +33,24 @@ func main() {
 		metrics = append(metrics, line)
 	}
 
-	var totalIncreases = 0
-	for i := 1; i < len(metrics); i++ {
-		if metrics[i-1] < metrics[i] {
-			totalIncreases++
+	return metrics
+}
+
+// count the number of times a depth measurement increases from the previous measurement.
+// context: https://adventofcode.com/2021/day/1
+func totalIncreases(metrics []int) int {
+	var total = 0
+	for i := 0; i < len(metrics)-1; i++ {
+		if metrics[i] < metrics[i+1] {
+			total++
 		}
 	}
-	println(totalIncreases)
+	return total
+}
+
+func main() {
+	metrics := readInput("day/1/input.txt")
+	total := totalIncreases(metrics)
+
+	println(total)
 }
