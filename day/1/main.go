@@ -1,7 +1,6 @@
 package main
 
 import (
-	"container/list"
 	"fmt"
 	"io"
 	"log"
@@ -9,7 +8,7 @@ import (
 )
 
 func main() {
-	var metrics = list.List{}
+	var metrics = make([]int, 0, 16)
 
 	file, err := os.Open("day/1/input.txt")
 	if err != nil {
@@ -31,10 +30,14 @@ func main() {
 			log.Fatal(err)
 		}
 
-		metrics.PushBack(line)
+		metrics = append(metrics, line)
 	}
 
-	for i := metrics.Front(); i != nil; i = i.Next() {
-		fmt.Println(i.Value)
+	var totalIncreases = 0
+	for i := 1; i < len(metrics); i++ {
+		if metrics[i-1] < metrics[i] {
+			totalIncreases++
+		}
 	}
+	println(totalIncreases)
 }
