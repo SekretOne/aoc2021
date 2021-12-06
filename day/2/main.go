@@ -7,9 +7,15 @@ import (
 	"os"
 )
 
-type Position struct {
-	X int
-	Y int
+type Submarine struct {
+	Forward int
+	Depth   int
+}
+
+type Submarine2 struct {
+	Forward int
+	Depth   int
+	Aim     int
 }
 
 type Direction struct {
@@ -23,9 +29,23 @@ var (
 	Forward = Direction{Dx: 1, Dy: 0}
 )
 
-func (p *Position) Move(dir *Direction, dist int) {
-	p.X += dir.Dx * dist
-	p.Y += dir.Dy * dist
+// Move the submarine in the given direction by distance
+func (p *Submarine) Move(dir *Direction, dist int) {
+	p.Forward += dir.Dx * dist
+	p.Depth += dir.Dy * dist
+}
+
+// Move the submarine based off direction, distance and the sub's Aim
+// Down X increases your aim by X units.
+// Up X decreases your aim by X units.
+// Forward X does two things:
+//   It increases your horizontal position by X units.
+//   It increases your depth by your aim multiplied by X.
+func (p *Submarine2) Move(dir *Direction, dist int) {
+	p.Aim += dir.Dy * dist
+
+	p.Forward += dir.Dx * dist
+	p.Depth += dir.Dx * dist * p.Aim
 }
 
 type Command struct {
@@ -75,12 +95,26 @@ func readInput(fileName string) []Command {
 }
 
 func main() {
-	pos := Position{0, 0}
+	sub1 := Submarine{0, 0}
 	commands := readInput("day/2/input.txt")
 	for _, command := range commands {
-		pos.Move(command.Dir, command.Dist)
+		sub1.Move(command.Dir, command.Dist)
 	}
 
-	fmt.Printf("position{ X: %d, Y: %d }\n", pos.X, pos.Y)
-	fmt.Printf("multiplied distance: %d\n", pos.X*pos.Y)
+	fmt.Printf("Submarine 1 { Forward: %d, Depth: %d }\n", sub1.Forward, sub1.Depth)
+	fmt.Printf("multiplied distance: %d\n", sub1.Forward*sub1.Depth)
+
+	sub2 := Submarine2{
+		Forward: 0,
+		Depth:   0,
+		Aim:     0,
+	}
+
+	for _, command := range commands {
+		sub2.Move(command.Dir, command.Dist)
+	}
+
+	fmt.Printf("\nSubmarine 2 (with aim) { Forward: %d, Depth: %d, Aim: %d }\n", sub2.Forward, sub2.Depth, sub2.Aim)
+	fmt.Printf("multiplied distance: %d\n", sub2.Forward*sub2.Depth)
+
 }
