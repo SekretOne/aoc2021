@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-type rate struct {
+type rating struct {
 	String  string
 	BitSize int
 	Value   int
@@ -24,7 +24,8 @@ func readInput(fileName string) []string {
 	return strings.Split(content, "\r\n")
 }
 
-func gamma(report []string) rate {
+// calculate gamma rating from finding the most common bit in each entry
+func gamma(report []string) rating {
 	g := ""
 
 	bitSize := len(report[0])
@@ -56,14 +57,15 @@ func gamma(report []string) rate {
 		log.Fatal(err)
 	}
 
-	return rate{
+	return rating{
 		String:  g,
 		BitSize: len(g),
 		Value:   int(val),
 	}
 }
 
-func epsilon(g rate) rate {
+// calculate the epsilon rating by inverting the gamma
+func epsilon(g rating) rating {
 	mask := int(math.Pow(2, float64(len(g.String)))) - 1
 
 	val := g.Value ^ mask
@@ -71,10 +73,54 @@ func epsilon(g rate) rate {
 	epBits := strconv.FormatInt(int64(val), 2)
 	padding := fmt.Sprintf("%d", g.BitSize)
 
-	return rate{
+	return rating{
 		String:  fmt.Sprintf("%0"+padding+"v", epBits),
 		BitSize: g.BitSize,
 		Value:   val,
+	}
+}
+
+func o2Gen(report []string) rating {
+	return reduce(report, 0, true)
+}
+
+func co2Scrub(report []string) rating {
+	return reduce(report, 0, false)
+}
+
+// recursive reducer that filters down the most or least popular
+func reduce(r []string, bitPos int, useCommon bool) rating {
+	bitSize := len(r[0])
+
+	if bitPos == bitSize {
+		val, err := strconv.ParseInt(r[0], 2, 0)
+
+		if err != nil {
+			log.Fatalf("unable to parse %v into an int, %v", r[0], err)
+		}
+
+		return rating{
+			String:  r[0],
+			BitSize: bitSize,
+			Value:   int(val),
+		}
+	}
+
+	ones := make([]string, 0, len(r))
+	zeroes := make([]string, 0, len(r))
+
+	for _, e := range r {
+		if e[bitPos:bitPos+1] == "1" {
+			ones = append(ones, e)
+		} else {
+			zeroes = append(zeroes, e)
+		}
+	}
+
+	if len(ones)-len(zeroes) >= 0 == useCommon && len(ones) > 0 || len(zeroes) == 0 {
+		return reduce(ones, bitPos+1, useCommon)
+	} else {
+		return reduce(zeroes, bitPos+1, useCommon)
 	}
 }
 
@@ -87,4 +133,12 @@ func main() {
 	fmt.Printf("epsilon: %+v\n", e)
 
 	fmt.Println(g.Value * e.Value)
+	// -- day 2
+	o2 := o2Gen(report)
+	co2 := co2Scrub(report)
+
+	fmt.Printf("o2: %+v\n", o2)
+	fmt.Printf("co2: %+v\n", co2)
+
+	fmt.Println(o2.Value * co2.Value)
 }
